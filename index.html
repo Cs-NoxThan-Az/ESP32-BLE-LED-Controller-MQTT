@@ -1,52 +1,41 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ESP32 MQTT LED Controller</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.1.0/paho-mqtt.min.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mqtt/4.3.7/mqtt.min.js"></script>
     <style>
-        :root {
-            --primary: #4285f4;
-            --secondary: #34a853;
-            --danger: #ea4335;
-        }
-        
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            max-width: 600px;
-            margin: 0 auto;
-            padding: 20px;
-            color: #333;
-        }
-        
-        .card {
-            background: white;
-            border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            padding: 25px;
-            margin-bottom: 20px;
-        }
-        
-        h1 {
-            color: var(--primary);
+            font-family: Arial, sans-serif;
+            margin: 20px;
             text-align: center;
+            background-color: #f5f5f5;
         }
-        
+        .container {
+            background-color: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            max-width: 500px;
+            margin: 0 auto;
+        }
+        .slider-container {
+            margin: 30px auto;
+            width: 80%;
+            max-width: 400px;
+        }
         .switch {
             position: relative;
             display: inline-block;
             width: 60px;
             height: 34px;
-            margin: 10px 0;
+            margin-top: 10px;
         }
-        
         .switch input {
             opacity: 0;
             width: 0;
             height: 0;
         }
-        
         .slider {
             position: absolute;
             cursor: pointer;
@@ -58,7 +47,6 @@
             transition: .4s;
             border-radius: 34px;
         }
-        
         .slider:before {
             position: absolute;
             content: "";
@@ -70,218 +58,295 @@
             transition: .4s;
             border-radius: 50%;
         }
-        
         input:checked + .slider {
-            background-color: var(--primary);
+            background-color: #2196F3;
         }
-        
         input:checked + .slider:before {
             transform: translateX(26px);
         }
-        
-        .slider-container {
-            margin: 30px 0;
-        }
-        
         .brightness-slider {
             width: 100%;
-            margin: 15px 0;
+            margin-top: 30px;
         }
-        
         #status {
-            padding: 10px;
-            border-radius: 5px;
+            margin-top: 20px;
+            font-style: italic;
+            color: #666;
+        }
+        #connectionButton {
+            border: none;
+            color: white;
+            padding: 15px 32px;
             text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin: 4px 2px;
+            cursor: pointer;
+            border-radius: 8px;
+            background-color: #4CAF50;
+        }
+        .disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        .mqtt-settings {
+            margin-bottom: 20px;
+            text-align: left;
+            padding: 10px;
+            background-color: #f9f9f9;
+            border-radius: 5px;
+        }
+        .mqtt-settings input {
+            width: 100%;
+            padding: 8px;
+            margin: 5px 0;
+            box-sizing: border-box;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .mqtt-settings label {
             font-weight: bold;
         }
-        
+        h1 {
+            color: #2196F3;
+        }
+        .status-circle {
+            height: 15px;
+            width: 15px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 10px;
+        }
         .connected {
-            background-color: rgba(52, 168, 83, 0.2);
-            color: var(--secondary);
+            background-color: #4CAF50;
         }
-        
         .disconnected {
-            background-color: rgba(234, 67, 53, 0.2);
-            color: var(--danger);
-        }
-        
-        button {
-            background-color: var(--primary);
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 16px;
-            transition: background-color 0.3s;
-        }
-        
-        button:hover {
-            background-color: #3367d6;
-        }
-        
-        button:disabled {
-            background-color: #cccccc;
-            cursor: not-allowed;
+            background-color: #f44336;
         }
     </style>
 </head>
 <body>
-    <div class="card">
-        <h1>ESP32 LED Controller</h1>
+    <div class="container">
+        <h1>ESP32 MQTT LED Controller</h1>
         
-        <div id="status" class="disconnected">Disconnected from MQTT</div>
+        <div class="mqtt-settings">
+            <h3>MQTT Connection Settings</h3>
+            <div>
+                <label for="brokerUrl">Broker URL:</label>
+                <input type="text" id="brokerUrl" value="wss://34a3a3ed8f044f5ebec4ebfa558f5920.s1.eu.hivemq.cloud:8884/mqtt">
+            </div>
+            <div>
+                <label for="username">Username:</label>
+                <input type="text" id="username" value="abdelazizider">
+            </div>
+            <div>
+                <label for="password">Password:</label>
+                <input type="password" id="password" value="">
+            </div>
+            <div>
+                <label for="clientId">Client ID:</label>
+                <input type="text" id="clientId" value="web_client_">
+            </div>
+        </div>
         
-        <button id="connectBtn">Connect to MQTT</button>
-    </div>
-    
-    <div class="card">
+        <div>
+            <button id="connectionButton">Connect to MQTT Broker</button>
+        </div>
+        
         <div class="slider-container">
             <h3>LED Power</h3>
             <label class="switch">
                 <input type="checkbox" id="ledToggle" disabled>
                 <span class="slider"></span>
             </label>
+            
+            <h3>Brightness</h3>
+            <input type="range" min="0" max="255" value="128" class="brightness-slider" id="brightnessSlider" disabled>
+            <p>Value: <span id="brightnessValue">128</span></p>
         </div>
         
-        <div class="slider-container">
-            <h3>Brightness: <span id="brightnessValue">128</span></h3>
-            <input type="range" min="0" max="255" value="128" class="brightness-slider" id="brightnessSlider" disabled>
-        </div>
+        <div id="status"><span class="status-circle disconnected"></span>Not connected</div>
     </div>
 
     <script>
-        // Configuration
-        const config = {
-            host: "broker.hivemq.com",
-            port: 8083,
-            clientId: "web-client-" + Math.random().toString(16).substr(2, 8),
-            stateTopic: "home/led/state",
-            brightnessTopic: "home/led/brightness",
-            statusTopic: "home/led/status"
-        };
+        // MQTT Topics
+        const TOPIC_LED_CONTROL = "esp32/led/control";
+        const TOPIC_LED_BRIGHTNESS = "esp32/led/brightness";
+        const TOPIC_LED_STATUS = "esp32/led/status";
         
-        // MQTT Client
-        let client;
+        let client = null;
         let isConnected = false;
-        
-        // DOM Elements
-        const connectBtn = document.getElementById("connectBtn");
-        const statusDiv = document.getElementById("status");
-        const ledToggle = document.getElementById("ledToggle");
-        const brightnessSlider = document.getElementById("brightnessSlider");
-        const brightnessValue = document.getElementById("brightnessValue");
-        
-        // Initialize connection
-        function initMQTT() {
-            client = new Paho.MQTT.Client(
-                config.host,
-                config.port,
-                config.clientId
-            );
-            
-            client.onConnectionLost = onConnectionLost;
-            client.onMessageArrived = onMessageArrived;
-            
-            const options = {
-                onSuccess: onConnect,
-                onFailure: onConnectFailure,
-                useSSL: true,
-                cleanSession: true,
-                reconnect: true
-            };
-            
-            client.connect(options);
-        }
-        
-        // Connection handlers
-        function onConnect() {
-            console.log("Connected to MQTT broker");
-            isConnected = true;
-            
-            statusDiv.textContent = "Connected to MQTT";
-            statusDiv.className = "connected";
-            
-            connectBtn.textContent = "Disconnect";
-            
-            // Subscribe to topics
-            client.subscribe(config.statusTopic);
-            
-            // Enable controls
-            ledToggle.disabled = false;
-            brightnessSlider.disabled = false;
-        }
-        
-        function onConnectFailure(err) {
-            console.error("Connection failed:", err);
-            statusDiv.textContent = "Connection failed";
-            statusDiv.className = "disconnected";
-        }
-        
-        function onConnectionLost(response) {
-            if (response.errorCode !== 0) {
-                console.log("Connection lost:", response.errorMessage);
-                isConnected = false;
-                
-                statusDiv.textContent = "Disconnected from MQTT";
-                statusDiv.className = "disconnected";
-                
-                connectBtn.textContent = "Connect to MQTT";
-                
-                // Disable controls
-                ledToggle.disabled = true;
-                brightnessSlider.disabled = true;
-            }
-        }
-        
-        // Message handler
-        function onMessageArrived(message) {
-            console.log("Message received:", message.destinationName, message.payloadString);
-            
-            if (message.destinationName === config.statusTopic) {
-                const [status, value] = message.payloadString.split(":");
-                
-                if (status === "online") {
-                    if (value === "on" || value === "off") {
-                        ledToggle.checked = value === "on";
-                    } else if (!isNaN(value)) {
-                        brightnessSlider.value = value;
-                        brightnessValue.textContent = value;
-                    }
-                }
-            }
-        }
-        
-        // UI Event handlers
-        connectBtn.addEventListener("click", function() {
+        let ledState = false;
+        let brightness = 128;
+
+        // Generate a random suffix for the client ID
+        document.getElementById('clientId').value += Math.floor(Math.random() * 10000);
+
+        // Event listeners
+        document.getElementById('connectionButton').addEventListener('click', toggleConnection);
+        document.getElementById('ledToggle').addEventListener('change', toggleLed);
+        document.getElementById('brightnessSlider').addEventListener('input', updateBrightnessValue);
+        document.getElementById('brightnessSlider').addEventListener('change', setBrightness);
+
+        async function toggleConnection() {
             if (isConnected) {
-                client.disconnect();
+                await disconnectFromMqtt();
             } else {
-                initMQTT();
+                await connectToMqtt();
             }
-        });
-        
-        ledToggle.addEventListener("change", function() {
-            if (!isConnected) return;
+        }
+
+        async function connectToMqtt() {
+            try {
+                document.getElementById('status').innerHTML = '<span class="status-circle disconnected"></span>Connecting...';
+                document.getElementById('connectionButton').disabled = true;
+                
+                const brokerUrl = document.getElementById('brokerUrl').value;
+                const username = document.getElementById('username').value;
+                const password = document.getElementById('password').value;
+                const clientId = document.getElementById('clientId').value;
+                
+                // Connect to MQTT broker
+                client = mqtt.connect(brokerUrl, {
+                    clientId: clientId,
+                    username: username,
+                    password: password,
+                    clean: true,
+                    reconnectPeriod: 5000,
+                    connectTimeout: 30000
+                });
+                
+                // Setup event handlers
+                client.on('connect', function() {
+                    isConnected = true;
+                    document.getElementById('status').innerHTML = '<span class="status-circle connected"></span>Connected to MQTT Broker';
+                    document.getElementById('connectionButton').textContent = 'Disconnect';
+                    document.getElementById('connectionButton').style.backgroundColor = '#f44336';
+                    document.getElementById('connectionButton').disabled = false;
+                    
+                    // Enable controls
+                    document.getElementById('ledToggle').disabled = false;
+                    document.getElementById('brightnessSlider').disabled = false;
+                    
+                    // Subscribe to status topic
+                    client.subscribe(TOPIC_LED_STATUS, function(err) {
+                        if (err) {
+                            console.error('Error subscribing to status topic:', err);
+                        } else {
+                            console.log('Subscribed to status topic');
+                        }
+                    });
+                });
+                
+                client.on('message', function(topic, message) {
+                    console.log('Received message:', topic, message.toString());
+                    
+                    if (topic === TOPIC_LED_STATUS) {
+                        // Parse status message (format: "ON,128" or "OFF,128")
+                        const parts = message.toString().split(',');
+                        if (parts.length === 2) {
+                            const state = parts[0];
+                            const brightnessValue = parseInt(parts[1]);
+                            
+                            ledState = (state === "ON");
+                            document.getElementById('ledToggle').checked = ledState;
+                            
+                            brightness = brightnessValue;
+                            document.getElementById('brightnessSlider').value = brightness;
+                            document.getElementById('brightnessValue').textContent = brightness;
+                        }
+                    }
+                });
+                
+                client.on('error', function(error) {
+                    console.error('MQTT Error:', error);
+                    document.getElementById('status').innerHTML = '<span class="status-circle disconnected"></span>Error: ' + error.message;
+                });
+                
+                client.on('offline', function() {
+                    document.getElementById('status').innerHTML = '<span class="status-circle disconnected"></span>MQTT Client Offline';
+                });
+                
+                client.on('reconnect', function() {
+                    document.getElementById('status').innerHTML = '<span class="status-circle disconnected"></span>Reconnecting...';
+                });
+                
+                client.on('close', function() {
+                    if (isConnected) {
+                        document.getElementById('status').innerHTML = '<span class="status-circle disconnected"></span>Connection Closed';
+                        onDisconnected();
+                    }
+                });
+                
+            } catch (error) {
+                console.error('Connection error:', error);
+                document.getElementById('status').innerHTML = '<span class="status-circle disconnected"></span>Connection failed: ' + error.message;
+                document.getElementById('connectionButton').disabled = false;
+                isConnected = false;
+            }
+        }
+
+        async function disconnectFromMqtt() {
+            if (client && client.connected) {
+                document.getElementById('status').innerHTML = '<span class="status-circle disconnected"></span>Disconnecting...';
+                document.getElementById('connectionButton').disabled = true;
+                
+                client.end(true, {}, function() {
+                    onDisconnected();
+                });
+            } else {
+                onDisconnected();
+            }
+        }
+
+        function toggleLed() {
+            if (!client || !client.connected) return;
             
-            const message = new Paho.MQTT.Message(
-                this.checked ? "1" : "0"
-            );
-            message.destinationName = config.stateTopic;
-            client.send(message);
-        });
-        
-        brightnessSlider.addEventListener("input", function() {
-            brightnessValue.textContent = this.value;
-        });
-        
-        brightnessSlider.addEventListener("change", function() {
-            if (!isConnected) return;
+            const value = document.getElementById('ledToggle').checked ? "ON" : "OFF";
             
-            const message = new Paho.MQTT.Message(this.value);
-            message.destinationName = config.brightnessTopic;
-            client.send(message);
-        });
+            try {
+                client.publish(TOPIC_LED_CONTROL, value, { qos: 1 });
+                console.log('Sent LED command:', value);
+            } catch (error) {
+                console.error('Error toggling LED:', error);
+                document.getElementById('status').innerHTML = '<span class="status-circle connected"></span>Error toggling LED: ' + error.message;
+            }
+        }
+
+        function updateBrightnessValue() {
+            const value = document.getElementById('brightnessSlider').value;
+            document.getElementById('brightnessValue').textContent = value;
+        }
+
+        function setBrightness() {
+            if (!client || !client.connected) return;
+            
+            const value = document.getElementById('brightnessSlider').value;
+            
+            try {
+                client.publish(TOPIC_LED_BRIGHTNESS, value, { qos: 1 });
+                console.log('Sent brightness command:', value);
+            } catch (error) {
+                console.error('Error setting brightness:', error);
+                document.getElementById('status').innerHTML = '<span class="status-circle connected"></span>Error setting brightness: ' + error.message;
+            }
+        }
+
+        function onDisconnected() {
+            document.getElementById('status').innerHTML = '<span class="status-circle disconnected"></span>Disconnected';
+            document.getElementById('connectionButton').textContent = 'Connect to MQTT Broker';
+            document.getElementById('connectionButton').style.backgroundColor = '#4CAF50';
+            document.getElementById('connectionButton').disabled = false;
+            
+            document.getElementById('ledToggle').disabled = true;
+            document.getElementById('brightnessSlider').disabled = true;
+            
+            isConnected = false;
+            if (client) {
+                client = null;
+            }
+        }
     </script>
 </body>
 </html>

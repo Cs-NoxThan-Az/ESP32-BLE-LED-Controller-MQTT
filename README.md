@@ -73,9 +73,12 @@ The browser-based interface provides:
 4. Click "Connect to MQTT Broker"
 5. Use the controls to interact with your LED
 
+-Connection Details : Url , Port , Websocket 
 ![MQTT Connection Settings](image2.jpg)
 
 
+-Authentication : Username , Password
+![MQTT Connection Settings](image3.jpg)
 
 
 ## Acknowledgments

@@ -74,11 +74,11 @@ The browser-based interface provides:
 5. Use the controls to interact with your LED
 
 -Connection Details : Url , Port , Websocket 
-![MQTT Connection Settings](image2.jpg)
+![MQTT Connection Settings](image2.png)
 
 
 -Authentication : Username , Password
-![MQTT Connection Settings](image3.jpg)
+![MQTT Connection Settings](image3.png)
 
 
 ## Acknowledgments

@@ -1,8 +1,9 @@
 # ESP32 MQTT LED Controller
 
 A smart LED controller project using an ESP32 microcontroller with MQTT connectivity for remote brightness control via a web interface.
+Live website here : https://cs-noxthan-az.github.io/ESP32-BLE-LED-Controller-MQTT/
 
-![LED Controller Web Interface](image1.jpg)
+![LED Controller Web Interface](image1.png)
 
 ## Project Overview
 
